@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform - Authentication</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Identity Portal</h1>
+                <p class="subtitle">Secure System Access</p>
+            </div>
+
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="email">System Email</label>
+                    <input type="email" id="email" name="email" placeholder="user@domain.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Passphrase</label>
+                    <input type="password" id="password" name="password" placeholder="Enter credentials" required>
+                    <div class="password-toggle" onclick="togglePassword()">👁️</div>
+                </div>
+
+                <div id="errorMessage" class="error-message"></div>
+                <div id="successMessage" class="success-message"></div>
+
+                <button type="submit" class="btn btn-primary" id="loginBtn">Authenticate</button>
+
+                <div class="form-footer">
+                    <a href="forgot-password.html" class="link">Recover Access</a>
+                    <span class="separator">|</span>
+                    <a href="register.html" class="link">Request Account</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        if (isLoggedIn()) window.location.href = 'dashboard.html';
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            
+            clearMessages();
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Verifying...';
+            
+            try {
+                const response = await login(email, password);
+                if (response.token) {
+                    saveToken(response.token);
+                    saveUserInfo(response);
+                    window.location.href = 'dashboard.html';
+                }
+            } catch (error) {
+                showError(error.message || 'Authentication rejected');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Authenticate';
+            }
+        });
+
+        function togglePassword() {
+            const field = document.getElementById('password');
+            field.type = field.type === 'password' ? 'text' : 'password';
+        }
+
+        function clearMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            showToast(message, 'error');
+        }
+    </script>
+</body>
+</html>

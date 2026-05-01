@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: project-postgres
+    environment:
+      POSTGRES_DB: authx_db
+      POSTGRES_USER: authx_user
+      POSTGRES_PASSWORD: authx_pass123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - project-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U authx_user -d authx_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: project-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/authx_db
+      SPRING_DATASOURCE_USERNAME: authx_user
+      SPRING_DATASOURCE_PASSWORD: authx_pass123
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - project-network
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: project-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - project-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  project-network:
+    driver: bridge

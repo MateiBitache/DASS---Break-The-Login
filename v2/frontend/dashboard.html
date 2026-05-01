@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform - Workspace</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="dashboard">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <h2>Workspace Console</h2>
+            </div>
+            <div class="nav-user">
+                <span id="userEmail">Loading...</span>
+                <button class="btn btn-sm btn-secondary" onclick="logout()">Terminate Session</button>
+            </div>
+        </nav>
+
+        <div class="dashboard-content">
+            <div class="sidebar">
+                <h3>Navigation</h3>
+                <ul class="menu">
+                    <li class="menu-item active" data-view="tickets" onclick="switchView('tickets')">
+                        Active Records
+                    </li>
+                    <li class="menu-item" data-view="profile" onclick="switchView('profile')">
+                        Identity Settings
+                    </li>
+                    <li class="menu-item" data-view="security" onclick="switchView('security')">
+                        Session Telemetry
+                    </li>
+                    <li class="menu-item" id="menuAudit" data-view="audit" onclick="switchView('audit')" style="display: none;">
+                        System Audit Logs
+                    </li>
+                </ul>
+            </div>
+
+            <div class="main-content">
+                <div id="ticketsView" class="view active">
+                    <div class="view-header">
+                        <h2>Record Management</h2>
+                        <div class="records-toolbar">
+                            <input
+                                type="search"
+                                id="ticketSearch"
+                                class="search-input"
+                                placeholder="Search records by title"
+                                oninput="searchTicketsDebounced()"
+                            >
+                            <button class="btn btn-secondary" onclick="clearTicketSearch()">Clear</button>
+                            <button class="btn btn-primary" onclick="showCreateTicket()">New Record</button>
+                        </div>
+                    </div>
+
+                    <div id="createTicketForm" class="ticket-form" style="display: none;">
+                        <form onsubmit="createTicket(event)">
+                            <div class="form-group">
+                                <label>Subject Directive</label>
+                                <input type="text" id="ticketTitle" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Operational Details</label>
+                                <textarea id="ticketDescription" rows="4" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Priority Level</label>
+                                <select id="ticketSeverity">
+                                    <option value="LOW">Routine</option>
+                                    <option value="MEDIUM">Elevated</option>
+                                    <option value="HIGH">High Priority</option>
+                                    <option value="CRITICAL">Immediate Action</option>
+                                </select>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Commit Record</button>
+                                <button type="button" class="btn btn-secondary" onclick="hideCreateTicket()">Discard</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="ticketsList" class="tickets-grid">
+                        <div class="loading">Synchronizing...</div>
+                    </div>
+                </div>
+
+                <div id="profileView" class="view">
+                    <h2>Identity Configuration</h2>
+                    <div class="profile-card">
+                        <div class="profile-field">
+                            <label>Primary Contact</label>
+                            <span id="profileEmail">-</span>
+                        </div>
+                        <div class="profile-field">
+                            <label>System GUID</label>
+                            <span id="profileId">-</span>
+                        </div>
+                        <div class="profile-field">
+                            <label>Clearance Level</label>
+                            <span id="profileRole">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="securityView" class="view">
+                    <h2>Session Telemetry</h2>
+                    <div class="security-card">
+                        <div class="token-info">
+                            <div class="info-group">
+                                <label>Active Signature</label>
+                                <code id="tokenPreview">-</code>
+                            </div>
+                            <div class="info-group">
+                                <label>Handshake Timestamp</label>
+                                <span id="tokenIat">-</span>
+                            </div>
+                            <div class="info-group">
+                                <label>Scheduled Termination</label>
+                                <span id="tokenExp">-</span>
+                            </div>
+                            <div class="info-group">
+                                <label>Remaining TTL</label>
+                                <span id="tokenTtl">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="auditView" class="view">
+                    <h2>System Audit Logs (Manager Only)</h2>
+                    <div class="security-card" style="overflow-x: auto;">
+                        <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <th style="padding: 10px;">Time</th>
+                                    <th style="padding: 10px;">User</th>
+                                    <th style="padding: 10px;">Action</th>
+                                    <th style="padding: 10px;">Status</th>
+                                    <th style="padding: 10px;">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditTableBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        if (!isLoggedIn()) window.location.href = 'index.html';
+        initDashboard();
+    </script>
+</body>
+</html>
